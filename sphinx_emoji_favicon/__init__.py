@@ -31,7 +31,7 @@ for k, v in EMOJI_DATA.items():
 emoji_strs = set(str2emoji.keys())
 
 
-def url_is_reachable(url: str, timeout: float = 0.8) -> bool:
+def _url_is_reachable(url: str, timeout: float = 0.8) -> bool:
     """Check if a URL is reachable.
 
     Parameters
@@ -54,6 +54,30 @@ def url_is_reachable(url: str, timeout: float = 0.8) -> bool:
         return False
 
 
+def _get_twemoji_latest_version() -> str:
+    """Get the latest twemoji version.
+
+    Returns
+    -------
+    str
+        The latest twemoji version.
+
+    """
+    defalut_latest_version = "14.0.2"
+    url = "https://unpkg.com/twemoji@latest/dist/twemoji.min.js"
+    try:
+        r = requests.get(url, timeout=3)
+        if r.status_code == 200:
+            # search for the version number in r.url
+            # which will be redirected to the latest version with version number
+            # e.g. https://unpkg.com/twemoji@14.0.2/dist/twemoji.min.js
+            return re.search("twemoji@([\\w\\.\\-]+)", r.url).group(1)
+        else:
+            return defalut_latest_version
+    except Exception:
+        return defalut_latest_version
+
+
 def _get_twemoji_config(twemoji_assets_type: str = "72x72", twemoji_cdn: Optional[str] = None) -> Dict[str, Any]:
     """Get the twemoji configuration.
 
@@ -70,7 +94,8 @@ def _get_twemoji_config(twemoji_assets_type: str = "72x72", twemoji_cdn: Optiona
         The twemoji configuration.
 
     """
-    twemoji_version = "14.0.2"
+    # twemoji_version = "14.0.2"
+    twemoji_version = _get_twemoji_latest_version()
     twemoji_assets_ext = {"svg": "svg", "72x72": "png"}[twemoji_assets_type]
     twemoji_image_type = {"svg": "image/svg+xml", "72x72": "image/png"}[twemoji_assets_type]
     twemoji_cdn_cadidates = [
@@ -84,7 +109,7 @@ def _get_twemoji_config(twemoji_assets_type: str = "72x72", twemoji_cdn: Optiona
     test_emoji_code_point = "1f40d"  # snake
     twemoji_base_url = twemoji_cdn_cadidates[0]  # by default, use cdnjs
     for _twemoji_cdn in twemoji_cdn_cadidates[1:]:
-        if url_is_reachable(f"{_twemoji_cdn}{test_emoji_code_point}.{twemoji_assets_ext}", timeout=0.8):
+        if _url_is_reachable(f"{_twemoji_cdn}{test_emoji_code_point}.{twemoji_assets_ext}", timeout=0.8):
             twemoji_base_url = _twemoji_cdn
             break
 
@@ -123,9 +148,7 @@ def _to_code_point(unicode_surrogates: str, sep: str = "-") -> str:
 
     """
     r = []
-    c = 0
-    p = 0
-    i = 0
+    c, p, i = 0, 0, 0
     while i < len(unicode_surrogates):
         c = ord(unicode_surrogates[i])
         i += 1
