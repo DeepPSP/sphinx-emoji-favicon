@@ -77,6 +77,7 @@ def _get_twemoji_config(twemoji_assets_type: str = "72x72", twemoji_cdn: Optiona
         f"https://cdnjs.cloudflare.com/ajax/libs/twemoji/{twemoji_version}/{twemoji_assets_type}/",  # cdnjs
         f"https://cdn.jsdelivr.net/gh/twitter/twemoji@{twemoji_version}/assets/{twemoji_assets_type}/",  # jsdelivr
         f"https://cdn.staticfile.org/twemoji/{twemoji_version}/{twemoji_assets_type}/",  # 七牛云
+        f"https://cdn.bootcdn.net/ajax/libs/twemoji/{twemoji_version}/{twemoji_assets_type}/",  # bootcdn
     ]
     if twemoji_cdn is not None:
         twemoji_cdn_cadidates.insert(0, twemoji_cdn)
