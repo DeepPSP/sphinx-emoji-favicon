@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional
 
 import docutils.nodes as nodes
 import requests
-from emoji.unicode_codes.data_dict import EMOJI_DATA
+from emoji.unicode_codes.data_dict import EMOJI_DATA, LANGUAGES
 from sphinx.application import Sphinx
 from sphinx.util import logging
 
@@ -18,17 +18,23 @@ version = "0.1"
 
 # constants
 emoji_unicodes = set(EMOJI_DATA.keys())
-str2emoji = {}
+_str2emoji = {}
+_str2emoji_lang = {lang: {} for lang in LANGUAGES}
 for k, v in EMOJI_DATA.items():
     for key, s in v.items():
         if key in ["status", "E", "variant"]:
             continue
         if key == "alias":
             for alias in s:
-                str2emoji[alias] = k
+                if alias not in _str2emoji:
+                    # alias might coincide with other emoji strings,
+                    # e.g. ":Japanese_post_office:" has alias ":post_office:",
+                    # but ":post_office:" is itself an emoji string in "en" language
+                    _str2emoji[alias] = k
         else:
-            str2emoji[s] = k
-emoji_strs = set(str2emoji.keys())
+            _str2emoji[s] = k
+            _str2emoji_lang[key][s] = k
+emoji_strs = set(_str2emoji.keys())
 
 
 def _url_is_reachable(url: str, timeout: float = 0.8) -> bool:
@@ -78,7 +84,7 @@ def _get_twemoji_latest_version() -> str:
         return defalut_latest_version
 
 
-def _get_twemoji_config(twemoji_assets_type: str = "72x72", twemoji_cdn: Optional[str] = None) -> Dict[str, Any]:
+def _get_twemoji_config(twemoji_assets_type: str = "72x72", twemoji_cdn: Optional[str] = None, **kwargs: Any) -> Dict[str, Any]:
     """Get the twemoji configuration.
 
     Parameters
@@ -87,6 +93,8 @@ def _get_twemoji_config(twemoji_assets_type: str = "72x72", twemoji_cdn: Optiona
         The twemoji assets type, by default "72x72".
     twemoji_cdn : Optional[str], optional
         The twemoji cdn, by default None.
+    **kwargs : Any
+        Other keyword arguments.
 
     Returns
     -------
@@ -120,6 +128,7 @@ def _get_twemoji_config(twemoji_assets_type: str = "72x72", twemoji_cdn: Optiona
         "image_type": twemoji_image_type,
         "base_url": twemoji_base_url,
     }
+    twemoji_config.update(kwargs)
 
     return twemoji_config
 
@@ -180,7 +189,7 @@ def _to_twemoji_url(unicode_surrogates: str) -> str:
     return f"""{_twemoji_config["base_url"]}{code_point}.{_twemoji_config["assets_ext"]}"""
 
 
-def create_emoji_favicon_meta(emoji_str_or_unicode: str) -> str:
+def create_emoji_favicon_meta(emoji_str_or_unicode: str, emoji_language: Optional[str] = None) -> str:
     """Create a favicon meta tag for a given emoji string.
 
     Parameters
@@ -195,23 +204,15 @@ def create_emoji_favicon_meta(emoji_str_or_unicode: str) -> str:
         The favicon meta tag.
 
     """
-    if emoji_str_or_unicode in emoji_strs:
-        emoji_unicode_surrogates = str2emoji[emoji_str_or_unicode]
-    elif emoji_str_or_unicode in emoji_unicodes:
-        emoji_unicode_surrogates = emoji_str_or_unicode
+    emoji_str_or_unicode = emoji_str_or_unicode.replace("\U0000FE0F", "")
+    if emoji_language is not None:
+        emoji_unicode_surrogates = _str2emoji_lang[emoji_language].get(emoji_str_or_unicode, emoji_str_or_unicode)
     else:
-        # detect errors and raise
-        if re.match("^:\\w+:$", emoji_str_or_unicode):
-            # check if the emoji string is valid
-            logger.error(f"Unknown emoji string: {emoji_str_or_unicode}")
-            # raise ValueError(f"Unknown emoji string: {emoji_str_or_unicode}")
-        else:
-            # invalid unicode surrogate
-            logger.error(f"Unknown emoji unicode surrogate: {emoji_str_or_unicode}")
-            # raise ValueError(f"Unknown emoji unicode surrogate: {emoji_str_or_unicode}")
-        return ""
+        emoji_unicode_surrogates = _str2emoji.get(emoji_str_or_unicode, emoji_str_or_unicode)
+    emoji_unicode_surrogates = emoji_unicode_surrogates.replace("\U0000FE0F", "")
     image_type = _twemoji_config["image_type"]
-    return f"""<link id="favicon" rel="icon" type="{image_type}" href="{_to_twemoji_url(emoji_unicode_surrogates)}">"""
+    twemoji_url = _to_twemoji_url(emoji_unicode_surrogates)
+    return f"""<link id="favicon" rel="icon" type="{image_type}" href="{twemoji_url}">"""
 
 
 def html_page_context(
@@ -242,8 +243,9 @@ def html_page_context(
         The context is updated in-place.
 
     """
+    global _twemoji_config
     # extract parameters from app
-    emoji_favicon = app.config["emoji_favicon"]
+    emoji_favicon = app.config["emoji_favicon"]  # str or dict or None
 
     # if "favicons" from sphinx_favicon is set, raise warning and abort
     if hasattr(app.config, "favicons") and app.config["favicons"] is not None:
@@ -257,7 +259,19 @@ def html_page_context(
     if not (doctree and emoji_favicon):
         return
 
-    emoji_favicon_meta = create_emoji_favicon_meta(emoji_favicon)
+    if isinstance(emoji_favicon, dict):
+        if "emoji" not in emoji_favicon:
+            logger.error(f"Invalid emoji config: {emoji_favicon}")
+            return
+        # update twemoji config
+        _twemoji_config = _get_twemoji_config(
+            twemoji_assets_type=emoji_favicon.get("twemoji_assets_type", "72x72"),
+            twemoji_cdn=emoji_favicon.get("twemoji_cdn", None),
+            language=emoji_favicon.get("language", None),
+        )
+        emoji_favicon = emoji_favicon["emoji"]
+
+    emoji_favicon_meta = create_emoji_favicon_meta(emoji_favicon, emoji_language=_twemoji_config.get("language", None))
     if emoji_favicon_meta != "":
         if "metatags" not in context:
             context["metatags"] = ""
