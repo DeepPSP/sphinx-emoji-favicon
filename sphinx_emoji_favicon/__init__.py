@@ -1,6 +1,7 @@
 """Sphinx extension to add emoji favicons.
 """
 
+import posixpath
 import re
 from typing import Any, Dict, Optional
 
@@ -113,13 +114,24 @@ def _get_twemoji_config(twemoji_assets_type: str = "72x72", twemoji_cdn: Optiona
         f"https://cdn.bootcdn.net/ajax/libs/twemoji/{twemoji_version}/{twemoji_assets_type}/",  # bootcdn
     ]
     if twemoji_cdn is not None:
-        twemoji_cdn_cadidates.insert(0, twemoji_cdn)
-    test_emoji_code_point = "1f40d"  # snake
-    twemoji_base_url = twemoji_cdn_cadidates[0]  # by default, use cdnjs
-    for _twemoji_cdn in twemoji_cdn_cadidates[1:]:
-        if _url_is_reachable(f"{_twemoji_cdn}{test_emoji_code_point}.{twemoji_assets_ext}", timeout=0.8):
-            twemoji_base_url = _twemoji_cdn
-            break
+        # twemoji_cdn_cadidates.insert(0, twemoji_cdn)
+        twemoji_base_url = twemoji_cdn
+        if not re.search("(\\d+\\.\\d+\\.\\d+)|latest", twemoji_base_url):
+            twemoji_base_url = posixpath.join(twemoji_base_url, twemoji_version)
+        if not re.search("svg|72x72", twemoji_base_url):
+            twemoji_base_url = posixpath.join(twemoji_base_url, twemoji_assets_type)
+        else:
+            # override default twemoji_assets_type and twemoji_assets_ext
+            twemoji_assets_type = re.search("svg|72x72", twemoji_base_url).group(0)
+            twemoji_assets_ext = {"svg": "svg", "72x72": "png"}[twemoji_assets_type]
+            twemoji_image_type = {"svg": "image/svg+xml", "72x72": "image/png"}[twemoji_assets_type]
+    else:
+        test_emoji_code_point = "1f40d"  # snake
+        twemoji_base_url = twemoji_cdn_cadidates[0]  # by default, use cdnjs
+        for _twemoji_cdn in twemoji_cdn_cadidates[1:]:
+            if _url_is_reachable(f"{_twemoji_cdn}{test_emoji_code_point}.{twemoji_assets_ext}", timeout=0.8):
+                twemoji_base_url = _twemoji_cdn
+                break
 
     twemoji_config = {
         "version": twemoji_version,
@@ -186,7 +198,8 @@ def _to_twemoji_url(unicode_surrogates: str) -> str:
 
     """
     code_point = _to_code_point(unicode_surrogates)
-    return f"""{_twemoji_config["base_url"]}{code_point}.{_twemoji_config["assets_ext"]}"""
+    filename = f"""{code_point}.{_twemoji_config["assets_ext"]}"""
+    return posixpath.join(_twemoji_config["base_url"], filename)
 
 
 def create_emoji_favicon_meta(emoji_str_or_unicode: str, emoji_language: Optional[str] = None) -> str:
