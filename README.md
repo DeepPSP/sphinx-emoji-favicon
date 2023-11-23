@@ -1,6 +1,8 @@
 # Sphinx emoji favicon
 
 [![PyPI](https://img.shields.io/pypi/v/sphinx-emoji-favicon?style=flat-square)](https://pypi.org/project/sphinx-emoji-favicon/)
+[![codecov](https://codecov.io/github/DeepPSP/sphinx-emoji-favicon/graph/badge.svg?token=XO53nHzvUM)](https://codecov.io/github/DeepPSP/sphinx-emoji-favicon)
+[![pytest](https://github.com/DeepPSP/sphinx-emoji-favicon/actions/workflows/run-pytest.yml/badge.svg)](https://github.com/DeepPSP/sphinx-emoji-favicon/actions/workflows/run-pytest.yml)
 [![license](https://img.shields.io/github/license/DeepPSP/sphinx-emoji-favicon?style=flat-square)](LICENSE)
 [![downloads](https://img.shields.io/pypi/dm/sphinx-emoji-favicon?style=flat-square)](https://pypistats.org/packages/sphinx-emoji-favicon)
 
