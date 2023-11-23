@@ -13,11 +13,11 @@ long_description = (cwd / "README.md").read_text(encoding="utf-8")
 
 install_requires = (cwd / "requirements.txt").read_text(encoding="utf-8").splitlines()
 
-# extras = {}
-# extras["test"] = (cwd / "test/requirements.txt").read_text(encoding="utf-8").splitlines()
+extras = {}
+extras["test"] = (cwd / "test/requirements.txt").read_text(encoding="utf-8").splitlines()
 # extras["docs"] = (cwd / "docs/requirements.txt").read_text(encoding="utf-8").splitlines()
 # extras["dev"] = extras["docs"] + extras["test"]
-
+extras["dev"] = extras["test"]
 
 setuptools.setup(
     name="sphinx_emoji_favicon",
@@ -51,5 +51,5 @@ setuptools.setup(
     ],
     python_requires=">=3.7",
     install_requires=install_requires,
-    # extras_require=extras,
+    extras_require=extras,
 )
