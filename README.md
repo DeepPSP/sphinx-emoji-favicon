@@ -8,6 +8,10 @@ A simple sphinx extension to add emoji favicon to your sphinx site.
 
 This extension is inspired by [sphinx-favicon](https://github.com/tcmetzger/sphinx-favicon) and [streamlit](https://github.com/streamlit/streamlit).
 
+Other related projects:
+
+- [carpedm20/emoji](https://github.com/carpedm20/emoji)
+- [twitter/twemoji](https://github.com/twitter/twemoji)
 
 ## Installation
 
