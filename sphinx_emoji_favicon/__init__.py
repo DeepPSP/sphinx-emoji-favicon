@@ -18,12 +18,24 @@ version = "0.2"
 
 
 # constants
-emoji_unicodes = set(EMOJI_DATA.keys())
+_defalut_twemoji_latest_version = "14.0.2"
 _str2emoji = {}
 _str2emoji_lang = {lang: {} for lang in LANGUAGES}
 for k, v in EMOJI_DATA.items():
+    if "status" in v and v["status"] > 2:
+        # https://carpedm20.github.io/emoji/docs/api.html#emoji-status
+        # 1: component, 2: fully-qualified, 3: minimally-qualified, 4: unqualified
+        continue
+    if "E" in v and str(v["E"]) > _defalut_twemoji_latest_version:
+        # skip emoji with newer version than twemoji latest version
+        continue
+    # limit to unicode emoji with length <= 2
+    # longer emoji strings are usually composed of multiple unicode emoji
+    if len(k) > 2:
+        continue
     for key, s in v.items():
         if key in ["status", "E", "variant"]:
+            # "E" for Emoji version: https://carpedm20.github.io/emoji/docs/api.html#emoji-version
             continue
         if key == "alias":
             for alias in s:
@@ -36,6 +48,7 @@ for k, v in EMOJI_DATA.items():
             _str2emoji[s] = k
             _str2emoji_lang[key][s] = k
 emoji_strs = set(_str2emoji.keys())
+emoji_unicodes = set(_str2emoji.values())
 
 
 def _url_is_reachable(url: str, timeout: float = 0.8) -> bool:
@@ -70,7 +83,6 @@ def _get_twemoji_latest_version() -> str:
         The latest twemoji version.
 
     """
-    defalut_latest_version = "14.0.2"
     url = "https://unpkg.com/twemoji@latest/dist/twemoji.min.js"
     try:
         r = requests.get(url, timeout=3)
@@ -80,9 +92,9 @@ def _get_twemoji_latest_version() -> str:
             # e.g. https://unpkg.com/twemoji@14.0.2/dist/twemoji.min.js
             return re.search("twemoji@([\\w\\.\\-]+)", r.url).group(1)
         else:
-            return defalut_latest_version
+            return _defalut_twemoji_latest_version
     except Exception:
-        return defalut_latest_version
+        return _defalut_twemoji_latest_version
 
 
 def _get_twemoji_config(twemoji_assets_type: str = "72x72", twemoji_cdn: Optional[str] = None, **kwargs: Any) -> Dict[str, Any]:
@@ -154,6 +166,8 @@ def _to_code_point(unicode_surrogates: str, sep: str = "-") -> str:
     Converted from the following JavaScript code:
 
     https://github.com/streamlit/streamlit/blob/develop/frontend/lib/src/vendor/twemoji.ts#L7-L24
+
+    https://unpkg.com/twemoji@14.0.2/dist/twemoji.min.js
 
     Parameters
     ----------
