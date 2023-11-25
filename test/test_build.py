@@ -33,6 +33,13 @@ emoji_favicon = {
 }
 """
 
+_conf_with_error = """
+emoji_favicon = {
+    "language": "fr",
+    "cdn": "https://twemoji.maxcdn.com/2/",
+}
+"""
+
 
 def test_build():
     """Test building the docs."""
@@ -82,6 +89,22 @@ def test_build():
 
         # execute "make clean" to remove the build files
         make_main(["-M", "clean", str(src_dir), str(build_dir)])
+
+    # test with an invalid configuration
+    new_conf = conf_bak.replace(_conf_original, _conf_with_error)
+    (src_dir / "conf.py").write_text(new_conf)
+    # first, clean the build directory
+    make_main(["-M", "clean", str(src_dir), str(build_dir)])
+    # then, build the docs
+    make_main(["-M", "html", str(src_dir), str(build_dir)])
+    # check that the favicon is not added to the HTML pages
+    pages = Path(build_dir / "html").glob("*.html")
+    assert (build_dir / "html" / "index.html").exists()
+    for page in pages:
+        if page.name in ["search.html", "genindex.html"]:
+            continue
+        page_content = page.read_text()
+        assert '<link id="favicon" rel="icon" type="image/png" ' not in page_content
 
     # restore the original conf.py
     (src_dir / "conf.py").write_text(conf_bak)

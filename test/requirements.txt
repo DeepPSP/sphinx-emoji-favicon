@@ -1,2 +1,3 @@
 tqdm
 emoji
+sphinx-favicon
