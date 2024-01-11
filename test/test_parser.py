@@ -4,7 +4,13 @@ import re
 from emoji import EMOJI_DATA, LANGUAGES
 from tqdm.auto import tqdm
 
-from sphinx_emoji_favicon import _defalut_twemoji_latest_version, _str2emoji, _url_is_reachable, create_emoji_favicon_meta
+from sphinx_emoji_favicon import (
+    _defalut_twemoji_latest_version,
+    _str2emoji,
+    _to_code_point,
+    _url_is_reachable,
+    create_emoji_favicon_meta,
+)
 
 
 def test_create_emoji_favicon_meta():
@@ -37,3 +43,8 @@ def test_create_emoji_favicon_meta():
             if emoji_alias in _str2emoji:
                 continue
             assert create_emoji_favicon_meta(emoji_alias) == emoji_favicon_meta
+
+
+def test_to_code_point():
+    for emoji_unicode, emoji_data in tqdm(EMOJI_DATA.items(), total=len(EMOJI_DATA)):
+        assert re.match("^[0-9a-f\\-]+$", _to_code_point(emoji_unicode))

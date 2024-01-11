@@ -4,8 +4,8 @@
 [![codecov](https://codecov.io/github/DeepPSP/sphinx-emoji-favicon/graph/badge.svg?token=XO53nHzvUM)](https://codecov.io/github/DeepPSP/sphinx-emoji-favicon)
 [![pytest](https://github.com/DeepPSP/sphinx-emoji-favicon/actions/workflows/run-pytest.yml/badge.svg)](https://github.com/DeepPSP/sphinx-emoji-favicon/actions/workflows/run-pytest.yml)
 [![license](https://img.shields.io/github/license/DeepPSP/sphinx-emoji-favicon?style=flat-square)](LICENSE)
-![GitHub Release Date - Published_At](https://img.shields.io/github/release-date/DeepPSP/sphinx-emoji-favicon)
 [![downloads](https://img.shields.io/pypi/dm/sphinx-emoji-favicon?style=flat-square)](https://pypistats.org/packages/sphinx-emoji-favicon)
+![GitHub Release Date - Published_At](https://img.shields.io/github/release-date/DeepPSP/sphinx-emoji-favicon)
 ![GitHub commits since latest release (by SemVer including pre-releases)](https://img.shields.io/github/commits-since/DeepPSP/sphinx-emoji-favicon/latest)
 
 A simple sphinx extension to add emoji favicon to your sphinx site.
