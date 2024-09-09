@@ -12,7 +12,7 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
@@ -34,7 +34,7 @@ jobs:
         python -m pip freeze
     - name: Run test with pytest and collect coverage
       run: |
-        pytest --cov=sphinx_emoji_favicon -v -s test
+        pytest --cov=sphinx_emoji_favicon -vv -s test
     - name: Upload coverage to Codecov
       if: matrix.python-version == '3.10'
       uses: codecov/codecov-action@v4
