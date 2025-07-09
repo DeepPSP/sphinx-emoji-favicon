@@ -52,7 +52,7 @@ def test_build():
 
     alternative_emoji_favicons = [
         _conf_original,
-        _conf_with_cdn_1,
+        # _conf_with_cdn_1,  # maxcdn has shut down its services
         _conf_with_cdn_2,
         _conf_with_svg_assets,
         _conf_with_lang,
