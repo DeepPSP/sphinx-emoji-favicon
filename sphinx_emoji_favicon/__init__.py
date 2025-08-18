@@ -1,5 +1,4 @@
-"""Sphinx extension to add emoji favicons.
-"""
+"""Sphinx extension to add emoji favicons."""
 
 import posixpath
 import re
@@ -231,12 +230,12 @@ def create_emoji_favicon_meta(emoji_str_or_unicode: str, emoji_language: Optiona
         The favicon meta tag.
 
     """
-    emoji_str_or_unicode = emoji_str_or_unicode.replace("\U0000FE0F", "")
+    emoji_str_or_unicode = emoji_str_or_unicode.replace("\U0000fe0f", "")
     if emoji_language is not None:
         emoji_unicode_surrogates = _str2emoji_lang[emoji_language].get(emoji_str_or_unicode, emoji_str_or_unicode)
     else:
         emoji_unicode_surrogates = _str2emoji.get(emoji_str_or_unicode, emoji_str_or_unicode)
-    emoji_unicode_surrogates = emoji_unicode_surrogates.replace("\U0000FE0F", "")
+    emoji_unicode_surrogates = emoji_unicode_surrogates.replace("\U0000fe0f", "")
     image_type = _twemoji_config["image_type"]
     twemoji_url = _to_twemoji_url(emoji_unicode_surrogates)
     return f"""<link id="favicon" rel="icon" type="{image_type}" href="{twemoji_url}">"""

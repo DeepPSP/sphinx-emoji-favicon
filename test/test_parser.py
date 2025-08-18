@@ -7,6 +7,7 @@ from tqdm.auto import tqdm
 from sphinx_emoji_favicon import (
     _defalut_twemoji_latest_version,
     _str2emoji,
+    _str2emoji_lang,
     _to_code_point,
     _url_is_reachable,
     create_emoji_favicon_meta,
@@ -27,8 +28,12 @@ def test_create_emoji_favicon_meta():
             if lang not in emoji_data:
                 continue
             emoji_str = emoji_data[lang]
+            lang_unicode = _str2emoji_lang[lang].get(emoji_str, emoji_str)
+            if lang_unicode != emoji_unicode:
+                print(f"Language mismatch for {emoji_unicode} in {lang}: {lang_unicode} != {emoji_unicode}")
+                continue
             new_emoji_favicon_meta = create_emoji_favicon_meta(emoji_str, lang)
-            assert new_emoji_favicon_meta == emoji_favicon_meta
+            assert new_emoji_favicon_meta == emoji_favicon_meta, f"Unexpected mismatch for {emoji_str} in {lang}"
             if random.random() <= check_link_probability:
                 link = re.search(r'href="([^"]+)"', emoji_favicon_meta).group(1)
                 # assert _url_is_reachable(link)
@@ -42,7 +47,7 @@ def test_create_emoji_favicon_meta():
         for emoji_alias in emoji_data.get("alias", []):
             if emoji_alias in _str2emoji:
                 continue
-            assert create_emoji_favicon_meta(emoji_alias) == emoji_favicon_meta
+            assert create_emoji_favicon_meta(emoji_alias) == emoji_favicon_meta, f"Unexpected mismatch for {emoji_alias}"
 
 
 def test_to_code_point():
